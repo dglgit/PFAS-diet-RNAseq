@@ -3,6 +3,7 @@ library(readr)
 library(magrittr)
 library(tidyverse)
 library(org.Mm.eg.db)
+library(org.Hs.eg.db)
 library(fgsea)
 library(qusage)
 library(dplyr)
@@ -19,8 +20,15 @@ df[is.infinite(df[['stat']]) & df[['stat']]<0,'stat']=min(df[is.finite(df[['stat
 mmgmt="m2.cp.v2024.1.Mm.symbols.gmt"
 hggmt="c1.all.v2024.1.Hs.symbols.gmt"
 pathways=read.gmt(hggmt)
-rs2symbol=AnnotationDbi::select(org.Mm.eg.db, key=df[["row"]], columns="SYMBOL",keytype="REFSEQ")
-res=merge(df,rs2symbol,by.x="row",by.y="REFSEQ")
+isRefseq=F
+if(isRefseq){
+    rs2symbol=AnnotationDbi::select(org.Mm.eg.db, key=df[["row"]], columns="SYMBOL",keytype="REFSEQ")
+    res=merge(df,rs2symbol,by.x="row",by.y="REFSEQ")
+}else {
+    res=df
+    res[['SYMBOL']]=res[['row']]
+}
+#rs2symbol=AnnotationDbi::select(org.Hs.eg.db, key=df[["row"]], columns="SYMBOL",keytype="SYMBOL")
 print('head res')
 print(head(res))
 selected=res[c('SYMBOL','stat')]
@@ -91,6 +99,7 @@ fgseaResTidy <- fgseaRes %>%
   as_tibble() %>%
   arrange(desc(NES))
 print(fgseaResTidy)
+print('========')
 print(fgseaResTidy %>% arrange(padj))
 fgseaResTidy[['leadingEdge']]=vapply(fgseaResTidy[['leadingEdge']],paste, collapse=', ',character(1L))
 #write.csv(as.data.frame(fgseaResTidy),"fgsea-results1.csv")
