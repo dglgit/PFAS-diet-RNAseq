@@ -18,7 +18,7 @@ df[is.infinite(df[['stat']]) & df[['stat']]<0,'stat']=min(df[is.finite(df[['stat
 
 #print(nrows(df))
 mmgmt="m2.cp.v2024.1.Mm.symbols.gmt"
-hggmt="c1.all.v2024.1.Hs.symbols.gmt"
+hggmt="c2.all.v2024.1.Hs.symbols.gmt"
 pathways=read.gmt(hggmt)
 isRefseq=F
 if(isRefseq){
@@ -30,7 +30,7 @@ if(isRefseq){
 }
 #rs2symbol=AnnotationDbi::select(org.Hs.eg.db, key=df[["row"]], columns="SYMBOL",keytype="SYMBOL")
 print('head res')
-print(head(res))
+print(head(res %>% arrange(padj)))
 selected=res[c('SYMBOL','stat')]
 selected=selected[!is.na(selected[['SYMBOL']]),]
 selected=selected[selected[['SYMBOL']]!='',]
@@ -93,7 +93,7 @@ getSym=function(num) num2sym[num]
 getNum=function(sym) sym2num[sym]
 }
 print('ball1')
-fgseaRes=fgsea(pathways=pathways,stats=ranks,nperm=1000)
+fgseaRes=fgsea(pathways=pathways,stats=ranks,nperm=10000)
 print('ball2')
 fgseaResTidy <- fgseaRes %>%
   as_tibble() %>%
@@ -105,6 +105,8 @@ fgseaResTidy[['leadingEdge']]=vapply(fgseaResTidy[['leadingEdge']],paste, collap
 #write.csv(as.data.frame(fgseaResTidy),"fgsea-results1.csv")
 # Show in a nice table:
 write.table(fgseaResTidy %>% arrange(padj),file="fgsea-results1.csv")
+sig=fgseaResTidy %>% filter(fgseaResTidy[['padj']]<0.05)
+write.table(sig %>% arrange(padj), file="fgsea-results1-significant.csv")
 #fgseaResTidy %>%
 #  dplyr::select(-leadingEdge, -ES, -nMoreExtreme) %>%
 #  arrange(padj) %>%
@@ -115,3 +117,4 @@ ggplot(fgseaResTidy, aes(reorder(pathway, NES), NES)) +
   labs(x="Pathway", y="Normalized Enrichment Score",
        title="Hallmark pathways NES from GSEA") + 
   theme_minimal()
+
