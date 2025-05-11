@@ -10,6 +10,7 @@ library(dplyr)
 library(DT)
 })
 df=read_csv("deseq2-results-hg-star.csv")
+#df=read_csv("deseq2-results1.csv")
 df=filter(df,df[['baseMean']]>0)
 df=(df %>% filter(!is.na(df[['pvalue']]) & !is.na(df[['stat']])))
 df[is.infinite(df[['stat']]) & df[['stat']]>0,'stat']=max(df[is.finite(df[['stat']]),'stat'])*1000
@@ -104,9 +105,9 @@ print(fgseaResTidy %>% arrange(padj))
 fgseaResTidy[['leadingEdge']]=vapply(fgseaResTidy[['leadingEdge']],paste, collapse=', ',character(1L))
 #write.csv(as.data.frame(fgseaResTidy),"fgsea-results1.csv")
 # Show in a nice table:
-write.table(fgseaResTidy %>% arrange(padj),file="fgsea-results1.csv")
+write.table(fgseaResTidy %>% arrange(padj),file="fgsea-results1-star.csv")
 sig=fgseaResTidy %>% filter(fgseaResTidy[['padj']]<0.05)
-write.table(sig %>% arrange(padj), file="fgsea-results1-significant.csv")
+write.table(sig %>% arrange(padj), file="fgsea-results1-significant-star.csv")
 #fgseaResTidy %>%
 #  dplyr::select(-leadingEdge, -ES, -nMoreExtreme) %>%
 #  arrange(padj) %>%
